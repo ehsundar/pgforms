@@ -4,6 +4,8 @@ from http.server import BaseHTTPRequestHandler
 from typing import Type
 from urllib.parse import parse_qsl, urlparse
 
+from pkg.response.response import BaseResponse
+
 
 class BaseView:
     def as_http_request_handler(parent_self) -> Type[BaseHTTPRequestHandler]:
@@ -42,4 +44,7 @@ class BaseView:
         raise NotImplemented
 
     def handle_post(self, handler: BaseHTTPRequestHandler):
+        raise NotImplemented
+
+    def do_get(self, request) -> BaseResponse:
         raise NotImplemented
