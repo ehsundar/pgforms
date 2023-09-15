@@ -1,0 +1,18 @@
+version: "2"
+plugins:
+  - name: py
+    wasm:
+      url: https://downloads.sqlc.dev/plugin/sqlc-gen-python_1.1.0.wasm
+      sha256: ef58f143a8c116781091441770c7166caaf361dd645f62b8f05f462e9f95c3b2
+sql:
+  - schema: "./migrations"
+    queries: "./src/users"
+    engine: "postgresql"
+    codegen:
+      - out: "./src/users"
+        plugin: py
+        options:
+          package: "src.users"
+          emit_sync_querier: true
+          emit_async_querier: true
+          query_parameter_limit: 5

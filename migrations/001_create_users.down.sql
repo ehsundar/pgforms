@@ -1,3 +1,3 @@
 drop table users;
-drop table session;
+drop table sessions;
 drop table settings;

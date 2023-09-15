@@ -1,10 +1,11 @@
+import uuid
 from datetime import timedelta
 from os import path
 from typing import Tuple
 
 from authlib.jose import jwt
 
-from src.internal.storage.entities.users.models import User, Session
+from src.users.models import Session, User
 
 
 class JsonWebToken:
@@ -36,6 +37,12 @@ class JsonWebToken:
 
         return str(session_jwt, "utf-8")
 
-    def validate(self, token: str) -> Tuple[str, str]:
-        jwt.decode(token, self._public_key)
+    def validate(self, token: str) -> Tuple[uuid.UUID, str]:
+        """
+        Validates a JWT with corresponding secret
 
+        :param token: provided JWT
+        :return: session ID and username
+        """
+        payload = jwt.decode(token, self._public_key)
+        return uuid.UUID(payload["jti"]), payload["sub"]
