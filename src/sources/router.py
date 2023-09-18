@@ -9,7 +9,7 @@ from src.database import get_db
 from src.dependencies import get_current_user
 from src.sources import guest_queries
 from src.sources.queries import AsyncQuerier
-from src.sources.schemas import ListSourcesResponse
+from src.sources.schemas import ListSourcesResponse, ListTablesResponse
 from src.users.models import User
 
 router = APIRouter(prefix="/sources", tags=["sources"])
@@ -33,8 +33,8 @@ async def list_sources(
     return ListSourcesResponse(sources=sources)
 
 
-@router.get("/introspection/{source_id}")
-async def introspection(
+@router.get("/introspection/{source_id}", response_model=ListTablesResponse)
+async def get_tables(
         db: Annotated[AsyncSession, Depends(get_db)],
         current_user: Annotated[User, Depends(get_current_user)],
         source_id: int,
@@ -59,4 +59,4 @@ async def introspection(
         async for t in guest_querier.list_tables():
             tables.append(t)
 
-        return {"tables": tables}
+        return ListTablesResponse(tables=tables)

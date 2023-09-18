@@ -7,3 +7,7 @@ from src.sources.models import Source
 
 class ListSourcesResponse(BaseModel):
     sources: List[Source]
+
+
+class ListTablesResponse(BaseModel):
+    tables: List[str]
