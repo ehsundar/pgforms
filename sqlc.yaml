@@ -16,3 +16,14 @@ sql:
           emit_sync_querier: true
           emit_async_querier: true
           query_parameter_limit: 5
+  - schema: "./migrations"
+    queries: "./src/sources"
+    engine: "postgresql"
+    codegen:
+      - out: "./src/sources"
+        plugin: py
+        options:
+          package: "src.sources"
+          emit_sync_querier: true
+          emit_async_querier: true
+          query_parameter_limit: 5

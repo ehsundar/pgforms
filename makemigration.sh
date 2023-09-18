@@ -5,4 +5,4 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-migrate create -digits 3 -ext sql -dir internal/storage/migrations -seq $1
+migrate create -digits 3 -ext sql -dir migrations/ -seq $1
