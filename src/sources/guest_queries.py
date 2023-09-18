@@ -12,7 +12,7 @@ from src.sources import models
 
 
 LIST_TABLE_COLUMNS = """-- name: list_table_columns \\:many
-select collation_name, data_type, column_default, is_nullable
+select column_name, data_type, column_default, is_nullable
 from information_schema.columns
 where table_schema = :p1
   and table_name = :p2
@@ -21,7 +21,7 @@ where table_schema = :p1
 
 @dataclasses.dataclass()
 class ListTableColumnsRow:
-    collation_name: Optional[Any]
+    column_name: Optional[Any]
     data_type: Optional[Any]
     column_default: Optional[Any]
     is_nullable: Optional[Any]
@@ -48,7 +48,7 @@ class Querier:
         result = self._conn.execute(sqlalchemy.text(LIST_TABLE_COLUMNS), {"p1": table_schema, "p2": table_name})
         for row in result:
             yield ListTableColumnsRow(
-                collation_name=row[0],
+                column_name=row[0],
                 data_type=row[1],
                 column_default=row[2],
                 is_nullable=row[3],
@@ -71,7 +71,7 @@ class AsyncQuerier:
         result = await self._conn.stream(sqlalchemy.text(LIST_TABLE_COLUMNS), {"p1": table_schema, "p2": table_name})
         async for row in result:
             yield ListTableColumnsRow(
-                collation_name=row[0],
+                column_name=row[0],
                 data_type=row[1],
                 column_default=row[2],
                 is_nullable=row[3],

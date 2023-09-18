@@ -9,7 +9,7 @@ from src.database import get_db
 from src.dependencies import get_current_user
 from src.sources import guest_queries
 from src.sources.queries import AsyncQuerier
-from src.sources.schemas import ListSourcesResponse, ListTablesResponse
+from src.sources.schemas import ListSourcesResponse, ListTablesResponse, TableColumn, TableColumnsResponse
 from src.users.models import User
 
 router = APIRouter(prefix="/sources", tags=["sources"])
@@ -60,3 +60,34 @@ async def get_tables(
             tables.append(t)
 
         return ListTablesResponse(tables=tables)
+
+
+@router.get("/introspection/{source_id}/tables/{table_name}", response_model=TableColumnsResponse)
+async def get_table_columns(
+        db: Annotated[AsyncSession, Depends(get_db)],
+        current_user: Annotated[User, Depends(get_current_user)],
+        source_id: int,
+        table_name: str,
+        table_schema: str = "public",
+):
+    conn = await db.connection()
+    querier = AsyncQuerier(conn)
+    source = await querier.get_source(id=source_id)
+    if not source:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    if source.owner != current_user.username:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+
+    conn_string = postgres_driver_replacement_regex.sub(r"\g<schema>+asyncpg://\g<connection>", source.conn_string)
+    engine = create_async_engine(conn_string, echo=True)
+    async_session = async_sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    async with async_session() as guest_db:
+        guest_conn = await guest_db.connection()
+        guest_querier = guest_queries.AsyncQuerier(guest_conn)
+
+        columns = []
+        async for c in guest_querier.list_table_columns(table_schema=table_schema, table_name=table_name):
+            columns.append(TableColumn.from_query_model(c))
+
+        return TableColumnsResponse(columns=columns)
