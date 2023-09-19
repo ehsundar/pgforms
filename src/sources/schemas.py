@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from pydantic import BaseModel
 
@@ -33,3 +33,7 @@ class TableColumn(BaseModel):
 
 class TableColumnsResponse(BaseModel):
     columns: List[TableColumn]
+
+
+class TableRowsResponse(BaseModel):
+    rows: List[Any]
