@@ -1,8 +1,9 @@
 import re
-from typing import Annotated
+from typing import Annotated, List
 
+import asyncpg
 import sqlalchemy
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import conint
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from starlette import status
@@ -102,11 +103,14 @@ async def table_rows(
         current_user: Annotated[User, Depends(get_current_user)],
         source_id: int,
         table_name: str,
+        fields: Annotated[str, Query()],
         table_schema: str = "public",
         limit: int = 30,
 ):
     if not 0 < limit < 501:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "limit out of range")
+    fields_sep = fields.split(",")
+    # TODO: Validate each field name
 
     conn = await db.connection()
     querier = AsyncQuerier(conn)
@@ -123,17 +127,18 @@ async def table_rows(
     async with async_session() as guest_db:
         guest_conn = await guest_db.connection()
 
-        rows = []
         rows_response = await guest_conn.execute(
             # can not use table name as input parameter, we format query
             # TODO: check schema and table access permission to avoid sql injection
-            sqlalchemy.text(
-                f"select * from {table_schema}.{table_name} limit :limit",
-            ),
+            sqlalchemy.text(f"select {fields} from {table_schema}.{table_name} limit :limit"),
             parameters={"limit": limit},
         )
 
+        rows = []
         for r in rows_response:
-            rows.append(tuple(r.t))
+            row = {}
+            for i, item in enumerate(r):
+                row[fields_sep[i]] = item
+            rows.append(row)
 
         return TableRowsResponse(rows=rows)
