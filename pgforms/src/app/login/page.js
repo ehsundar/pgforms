@@ -9,6 +9,22 @@ export default function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
+    const init = async () => {
+      const {Datepicker, Input, initTE} = await import("tw-elements");
+
+      const myInput = new Input(document.getElementById("myDatepicker"));
+      const options = {
+        format: "dd-mm-yyyy",
+      };
+      const myDatepicker = new Datepicker(
+          document.getElementById("myDatepicker"),
+          options
+      );
+    }
+    init();
+  }, []);
+
+  useEffect(() => {
     async function getUser() {
       const accessToken = localStorage.getItem("jwt")
       console.log(accessToken)
@@ -73,7 +89,7 @@ export default function Page() {
   if (isLoading) {
     return (
         <div>
-          <h1>Login</h1>
+          <h1 className="text-3xl font-bold underline">Login</h1>
           <h2>Getting user data...</h2>
         </div>
     );
@@ -86,7 +102,7 @@ export default function Page() {
 
     return (
         <div>
-          <h1>Login</h1>
+          <h1 className="text-3xl font-bold underline">Login</h1>
           <form onSubmit={onSubmit}>
             <div>
               <label htmlFor="username">Username</label>
